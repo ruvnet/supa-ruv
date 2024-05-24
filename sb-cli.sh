@@ -1,8 +1,29 @@
 #!/bin/bash
 
+# Function to display ASCII Art
+display_ascii_art() {
+  echo "                                 "
+  echo " _____             _____         "
+  echo "|   __|_ _ ___ ___| __  |_ _ _ _ "
+  echo "|__   | | | . | .'|    -| | | | |"
+  echo "|_____|___|  _|__,|__|__|___|\_/ "
+  echo "          |_|                    "
+  echo "            create by rUv        "
+  echo "                                 "
+}
+
+# Function to check if Supabase CLI is installed
+is_supabase_cli_installed() {
+  if command -v supabase &> /dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # Function to install Supabase CLI
 install_supabase_cli() {
-  echo "Installing Supabase CLI..."
+  printf "🚀 Installing Supabase CLI...\n"
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     brew install supabase/tap/supabase
   elif [[ "$OSTYPE" == "darwin"* ]]; then
@@ -11,34 +32,90 @@ install_supabase_cli() {
     scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
     scoop install supabase
   else
-    echo "Unsupported OS. Please install Supabase CLI manually."
+    printf "❌ Unsupported OS. Please install Supabase CLI manually.\n"
   fi
-  echo "Supabase CLI installed successfully."
+  printf "✅ Supabase CLI installed successfully.\n\n"
 }
 
-# Function to check if SUPABASE_KEY environment variable is set
-check_supabase_key() {
-  if [[ -z "${SUPABASE_KEY}" ]]; then
-    echo "SUPABASE_KEY environment variable is not set."
-    read -p "Enter your Supabase key (or press Enter to skip): " SUPABASE_KEY
-    if [[ -n "$SUPABASE_KEY" ]]; then
-      export SUPABASE_KEY
-      echo "SUPABASE_KEY has been set for this session."
+# Function to check if an environment variable is set
+check_env_var() {
+  local var_name=$1
+  local var_value=$(printenv $var_name)
+  if [[ -z "$var_value" ]]; then
+    printf "⚠️  $var_name environment variable is not set.\n"
+    read -p "Enter your $var_name (or press Enter to skip): " var_value
+    if [[ -n "$var_value" ]]; then
+      export $var_name=$var_value
+      printf "✅ $var_name has been set for this session.\n\n"
     else
-      echo "Skipping setting SUPABASE_KEY."
+      printf "⏭️  Skipping setting $var_name.\n\n"
     fi
   else
-    echo "SUPABASE_KEY is already set."
+    printf "✅ $var_name is already set.\n\n"
   fi
 }
 
-# Function to display instructions for setting SUPABASE_KEY manually
+# Function to display instructions for setting environment variables manually
 manual_instructions() {
-  echo "To set the SUPABASE_KEY environment variable manually, follow these steps:"
-  echo "1. Open your terminal."
-  echo "2. Run the following command:"
-  echo "   export SUPABASE_KEY=your_supabase_key"
-  echo "3. To make this change permanent, add the above line to your shell's configuration file (e.g., ~/.bashrc, ~/.zshrc)."
+  printf "📋 To set the environment variables manually, follow these steps:\n"
+  printf "1. Open your terminal.\n"
+  printf "2. Run the following commands:\n"
+  printf "   export SUPABASE_API_KEY=your_supabase_api_key\n"
+  printf "   export SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key\n"
+  printf "   export SUPABASE_JWT_SECRET=your_supabase_jwt_secret\n"
+  printf "3. To make these changes permanent, add the above lines to your shell's configuration file (e.g., ~/.bashrc, ~/.zshrc).\n\n"
+}
+
+# Function to display deployment options
+deployment_options() {
+  printf "Please choose a deployment option:\n"
+  PS3='Please enter your choice: '
+  options=("Local Deployment" "Remote Deployment" "Hybrid Deployment" "Back to Main Menu")
+  select opt in "${options[@]}"
+  do
+    case $opt in
+      "Local Deployment")
+        printf "🌐 Local Deployment: Develop and test your project locally without any network latency or internet disruptions.\n"
+        printf "Advantages:\n"
+        printf "  - Faster development\n"
+        printf "  - Easier collaboration\n"
+        printf "  - Cost-effective\n"
+        printf "  - Work offline\n\n"
+        supabase init
+        supabase start
+        break
+        ;;
+      "Remote Deployment")
+        printf "☁️ Remote Deployment: Develop and deploy your project directly on the Supabase Platform.\n"
+        printf "Advantages:\n"
+        printf "  - No local setup required\n"
+        printf "  - Access to Supabase's managed services\n"
+        printf "  - Scalable infrastructure\n\n"
+        supabase login
+        supabase link --project-ref your-project-id
+        break
+        ;;
+      "Hybrid Deployment")
+        printf "🔄 Hybrid Deployment: Combine local development with remote deployment for the best of both worlds.\n"
+        printf "Advantages:\n"
+        printf "  - Develop locally and deploy remotely\n"
+        printf "  - Capture all changes in code\n"
+        printf "  - Work offline and sync with remote\n\n"
+        supabase init
+        supabase start
+        supabase login
+        supabase link --project-ref your-project-id
+        break
+        ;;
+      "Back to Main Menu")
+        main_menu
+        break
+        ;;
+      *)
+        printf "❌ Invalid option $REPLY\n\n"
+        ;;
+    esac
+  done
 }
 
 # Function to display the main menu
@@ -70,7 +147,7 @@ main_menu() {
         break
         ;;
       *)
-        echo "Invalid option $REPLY"
+        printf "❌ Invalid option $REPLY\n\n"
         ;;
     esac
   done
@@ -95,13 +172,13 @@ local_setup_menu() {
       "Enable Local Logging")
         echo "[analytics]" >> supabase/config.toml
         echo "enabled = true" >> supabase/config.toml
-        echo "Local logging enabled."
+        printf "✅ Local logging enabled.\n\n"
         ;;
       "Back to Main Menu")
         main_menu
         ;;
       *)
-        echo "Invalid option $REPLY"
+        printf "❌ Invalid option $REPLY\n\n"
         ;;
     esac
   done
@@ -130,13 +207,13 @@ config_settings_menu() {
         echo "enabled = true" >> supabase/config.toml
         echo "client_id = \"env(YOUR_CLIENT_ID)\"" >> supabase/config.toml
         echo "client_secret = \"env(YOUR_CLIENT_SECRET)\"" >> supabase/config.toml
-        echo "Auth provider $provider enabled."
+        printf "✅ Auth provider $provider enabled.\n\n"
         ;;
       "Back to Main Menu")
         main_menu
         ;;
       *)
-        echo "Invalid option $REPLY"
+        printf "❌ Invalid option $REPLY\n\n"
         ;;
     esac
   done
@@ -163,7 +240,7 @@ manage_secrets_menu() {
         config_settings_menu
         ;;
       *)
-        echo "Invalid option $REPLY"
+        printf "❌ Invalid option $REPLY\n\n"
         ;;
     esac
   done
@@ -194,7 +271,7 @@ database_management_menu() {
         main_menu
         ;;
       *)
-        echo "Invalid option $REPLY"
+        printf "❌ Invalid option $REPLY\n\n"
         ;;
     esac
   done
@@ -224,7 +301,7 @@ edge_functions_menu() {
         main_menu
         ;;
       *)
-        echo "Invalid option $REPLY"
+        printf "❌ Invalid option $REPLY\n\n"
         ;;
     esac
   done
@@ -238,18 +315,18 @@ cicd_menu() {
   do
     case $opt in
       "Setup CI/CD")
-        echo "Setting up CI/CD..."
+        printf "🔧 Setting up CI/CD...\n"
         # Add CI/CD setup commands here
         ;;
       "Run CI/CD Pipeline")
-        echo "Running CI/CD pipeline..."
+        printf "🏃 Running CI/CD pipeline...\n"
         # Add CI/CD run commands here
         ;;
       "Back to Main Menu")
         main_menu
         ;;
       *)
-        echo "Invalid option $REPLY"
+        printf "❌ Invalid option $REPLY\n\n"
         ;;
     esac
   done
@@ -290,14 +367,29 @@ advanced_user_menu() {
         main_menu
         ;;
       *)
-        echo "Invalid option $REPLY"
+        printf "❌ Invalid option $REPLY\n\n"
         ;;
     esac
   done
 }
 
 # Main script execution
-install_supabase_cli
-check_supabase_key
+display_ascii_art
+if is_supabase_cli_installed; then
+  printf "✅ Supabase CLI is already installed.\n\n"
+else
+  printf "⚠️  Supabase CLI is not installed.\n"
+  read -p "Would you like to install the Supabase CLI? (y/n): " install_cli
+  if [[ "$install_cli" == "y" ]]; then
+    install_supabase_cli
+    deployment_options
+  else
+    printf "⏭️  Skipping Supabase CLI installation.\n\n"
+  fi
+fi
+
+check_env_var "SUPABASE_API_KEY"
+check_env_var "SUPABASE_SERVICE_ROLE_KEY"
+check_env_var "SUPABASE_JWT_SECRET"
 manual_instructions
 main_menu
