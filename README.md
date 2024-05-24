@@ -8,7 +8,16 @@
 |_____|___|  _|__,|__|__|___|\_/ 
           |_|                    
         
-      created by rUv + bots           
+      created by rUv + bots         
+
+Please enter your choice: 
+1) Local Setup
+2) Configuration & Settings
+3) Database Management
+4) Edge Functions
+5) CI/CD
+6) Advanced User Options
+7) Exit
                                  
 ```
 
