@@ -167,3 +167,7 @@ Brewfile.lock.json
 *.sublime-project
 *.sublime-workspace
 *.code-workspace
+*node*
+*supabase
+package-lock.json
+package.json
