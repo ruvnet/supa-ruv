@@ -8,8 +8,37 @@ display_ascii_art() {
   echo "|__   | | | . | .'|    -| | | | |"
   echo "|_____|___|  _|__,|__|__|___|\_/ "
   echo "          |_|                    "
-  echo "            create by rUv        "
+  echo "        created by rUv           "
   echo "                                 "
+}
+
+# Function to check if Homebrew is installed
+is_homebrew_installed() {
+  if command -v brew &> /dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Function to install Homebrew
+install_homebrew() {
+  printf "🚀 Installing Homebrew...\n"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  printf "✅ Homebrew installed successfully.\n\n"
+}
+
+# Function to add Homebrew to PATH
+add_homebrew_to_path() {
+  printf "🔧 Adding Homebrew to PATH...\n"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  else
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.profile
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  fi
+  printf "✅ Homebrew added to PATH.\n\n"
 }
 
 # Function to check if Supabase CLI is installed
@@ -24,16 +53,7 @@ is_supabase_cli_installed() {
 # Function to install Supabase CLI
 install_supabase_cli() {
   printf "🚀 Installing Supabase CLI...\n"
-  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    brew install supabase/tap/supabase
-  elif [[ "$OSTYPE" == "darwin"* ]]; then
-    brew install supabase/tap/supabase
-  elif [[ "$OSTYPE" == "msys" ]]; then
-    scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-    scoop install supabase
-  else
-    printf "❌ Unsupported OS. Please install Supabase CLI manually.\n"
-  fi
+  brew install supabase/tap/supabase
   printf "✅ Supabase CLI installed successfully.\n\n"
 }
 
@@ -144,7 +164,8 @@ main_menu() {
         advanced_user_menu
         ;;
       "Exit")
-        break
+        printf "👋 Exiting...\n"
+        exit 0
         ;;
       *)
         printf "❌ Invalid option $REPLY\n\n"
@@ -375,6 +396,23 @@ advanced_user_menu() {
 
 # Main script execution
 display_ascii_art
+
+# Check if Homebrew is installed
+if is_homebrew_installed; then
+  printf "✅ Homebrew is already installed.\n\n"
+else
+  printf "⚠️  Homebrew is not installed.\n"
+  read -p "Would you like to install Homebrew? (y/n): " install_homebrew
+  if [[ "$install_homebrew" == "y" ]]; then
+    install_homebrew
+    add_homebrew_to_path
+  else
+    printf "⏭️  Skipping Homebrew installation.\n\n"
+    main_menu
+  fi
+fi
+
+# Check if Supabase CLI is installed
 if is_supabase_cli_installed; then
   printf "✅ Supabase CLI is already installed.\n\n"
 else
@@ -385,11 +423,17 @@ else
     deployment_options
   else
     printf "⏭️  Skipping Supabase CLI installation.\n\n"
+    main_menu
   fi
 fi
 
+# Check environment variables
 check_env_var "SUPABASE_API_KEY"
 check_env_var "SUPABASE_SERVICE_ROLE_KEY"
 check_env_var "SUPABASE_JWT_SECRET"
+
+# Display manual instructions
 manual_instructions
+
+# Show the main menu
 main_menu
