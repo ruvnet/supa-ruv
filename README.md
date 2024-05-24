@@ -8,7 +8,7 @@
 |_____|___|  _|__,|__|__|___|\_/ 
           |_|                    
         
-      created by rUv + bots         
+🦄 created by rUv + bots         
 
 Please enter your choice: 
 1) Local Setup
