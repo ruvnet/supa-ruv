@@ -38,8 +38,8 @@ This script is designed to manage the installation and configuration of the Supa
 
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone https://github.com/ruvnet/supa-ruv.git
+   cd supa-ruv
    ```
 
 2. **Make the Script Executable**:

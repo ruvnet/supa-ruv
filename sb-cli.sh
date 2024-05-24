@@ -8,7 +8,7 @@ display_ascii_art() {
   echo "|__   | | | . | .'|    -| | | | |"
   echo "|_____|___|  _|__,|__|__|___|\_/ "
   echo "          |_|                    "
-  echo "        created by rUv           "
+  echo "  🦄 created by rUv + bots       "
   echo "                                 "
 }
 
