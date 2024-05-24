@@ -12,49 +12,25 @@ display_ascii_art() {
   echo "                                 "
 }
 
-# Function to check if Homebrew is installed
-is_homebrew_installed() {
-  if command -v brew &> /dev/null; then
+# Function to check if Node.js and npm are installed
+is_node_npm_installed() {
+  if command -v node &> /dev/null && command -v npm &> /dev/null; then
     return 0
   else
     return 1
   fi
 }
 
-# Function to install Homebrew
-install_homebrew() {
-  printf "🚀 Installing Homebrew...\n"
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  printf "✅ Homebrew installed successfully.\n\n"
-}
-
-# Function to add Homebrew to PATH
-add_homebrew_to_path() {
-  printf "🔧 Adding Homebrew to PATH...\n"
+# Function to install Node.js and npm
+install_node_npm() {
+  printf "🚀 Installing Node.js and npm...\n"
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+    brew install node
   else
-    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.profile
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+    sudo apt-get install -y nodejs
   fi
-  printf "✅ Homebrew added to PATH.\n\n"
-}
-
-# Function to check if Supabase CLI is installed
-is_supabase_cli_installed() {
-  if command -v supabase &> /dev/null; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-# Function to install Supabase CLI
-install_supabase_cli() {
-  printf "🚀 Installing Supabase CLI...\n"
-  brew install supabase/tap/supabase
-  printf "✅ Supabase CLI installed successfully.\n\n"
+  printf "✅ Node.js and npm installed successfully.\n\n"
 }
 
 # Function to check if an environment variable is set
@@ -101,8 +77,8 @@ deployment_options() {
         printf "  - Easier collaboration\n"
         printf "  - Cost-effective\n"
         printf "  - Work offline\n\n"
-        supabase init
-        supabase start
+        npx supabase init
+        npx supabase start
         break
         ;;
       "Remote Deployment")
@@ -111,8 +87,8 @@ deployment_options() {
         printf "  - No local setup required\n"
         printf "  - Access to Supabase's managed services\n"
         printf "  - Scalable infrastructure\n\n"
-        supabase login
-        supabase link --project-ref your-project-id
+        npx supabase login
+        npx supabase link --project-ref your-project-id
         break
         ;;
       "Hybrid Deployment")
@@ -121,10 +97,10 @@ deployment_options() {
         printf "  - Develop locally and deploy remotely\n"
         printf "  - Capture all changes in code\n"
         printf "  - Work offline and sync with remote\n\n"
-        supabase init
-        supabase start
-        supabase login
-        supabase link --project-ref your-project-id
+        npx supabase init
+        npx supabase start
+        npx supabase login
+        npx supabase link --project-ref your-project-id
         break
         ;;
       "Back to Main Menu")
@@ -182,13 +158,13 @@ local_setup_menu() {
   do
     case $opt in
       "Initialize Project")
-        supabase init
+        npx supabase init
         ;;
       "Start Supabase")
-        supabase start
+        npx supabase start
         ;;
       "Stop Supabase")
-        supabase stop
+        npx supabase stop
         ;;
       "Enable Local Logging")
         echo "[analytics]" >> supabase/config.toml
@@ -275,18 +251,16 @@ database_management_menu() {
   do
     case $opt in
       "Run Migration")
-        supabase migration
+        npx supabase migration
         ;;
       "Push Schema")
-        supabase db push
+        npx supabase db push
         ;;
       "Generate Types")
-        supabase gen types
+        generate_types_menu
         ;;
       "Execute SQL")
-        echo "Enter SQL query:"
-        read sql_query
-        supabase db query "$sql_query"
+        execute_sql
         ;;
       "Back to Main Menu")
         main_menu
@@ -308,15 +282,15 @@ edge_functions_menu() {
       "Create Edge Function")
         echo "Enter function name:"
         read function_name
-        supabase functions new $function_name
+        npx supabase functions new $function_name
         ;;
       "Deploy Edge Function")
         echo "Enter function name:"
         read function_name
-        supabase functions deploy $function_name
+        npx supabase functions deploy $function_name
         ;;
       "Serve Edge Function")
-        supabase functions serve
+        npx supabase functions serve
         ;;
       "Back to Main Menu")
         main_menu
@@ -363,26 +337,26 @@ advanced_user_menu() {
       "Deploy Serverless Edge Functions")
         echo "Enter function name:"
         read function_name
-        supabase functions deploy $function_name
+        npx supabase functions deploy $function_name
         ;;
       "Optimize/Create SQL")
         echo "Enter SQL query:"
         read sql_query
-        supabase db query "$sql_query"
+        npx supabase db query "$sql_query"
         ;;
       "Execute SQL Functions")
         echo "Enter SQL function:"
         read sql_function
-        supabase db query "SELECT $sql_function();"
+        npx supabase db query "SELECT $sql_function();"
         ;;
       "Manage Projects")
-        supabase projects
+        npx supabase projects
         ;;
       "Manage Organizations")
-        supabase orgs list
+        npx supabase orgs list
         ;;
       "Migrate to Production")
-        supabase db push
+        npx supabase db push
         ;;
       "Back to Main Menu")
         main_menu
@@ -394,36 +368,48 @@ advanced_user_menu() {
   done
 }
 
+# Function to guide through generating types
+generate_types_menu() {
+  printf "Generate types from Postgres schema\n"
+  PS3='Please enter your choice: '
+  options=("Generate TypeScript types" "Back to Database Management Menu")
+  select opt in "${options[@]}"
+  do
+    case $opt in
+      "Generate TypeScript types")
+        npx supabase gen types typescript
+        ;;
+      "Back to Database Management Menu")
+        database_management_menu
+        ;;
+      *)
+        printf "❌ Invalid option $REPLY\n\n"
+        ;;
+    esac
+  done
+}
+
+# Function to guide through executing SQL
+execute_sql() {
+  printf "Enter your SQL query:\n"
+  read sql_query
+  npx supabase db query "$sql_query"
+}
+
 # Main script execution
 display_ascii_art
 
-# Check if Homebrew is installed
-if is_homebrew_installed; then
-  printf "✅ Homebrew is already installed.\n\n"
+# Check if Node.js and npm are installed first
+if is_node_npm_installed; then
+  printf "✅ Node.js and npm are already installed.\n\n"
 else
-  printf "⚠️  Homebrew is not installed.\n"
-  read -p "Would you like to install Homebrew? (y/n): " install_homebrew
-  if [[ "$install_homebrew" == "y" ]]; then
-    install_homebrew
-    add_homebrew_to_path
+  printf "⚠️  Node.js and npm are not installed.\n"
+  read -p "Would you like to install Node.js and npm? (y/n): " install_node_npm
+  if [[ "$install_node_npm" == "y" ]]; then
+    install_node_npm
   else
-    printf "⏭️  Skipping Homebrew installation.\n\n"
-    main_menu
-  fi
-fi
-
-# Check if Supabase CLI is installed
-if is_supabase_cli_installed; then
-  printf "✅ Supabase CLI is already installed.\n\n"
-else
-  printf "⚠️  Supabase CLI is not installed.\n"
-  read -p "Would you like to install the Supabase CLI? (y/n): " install_cli
-  if [[ "$install_cli" == "y" ]]; then
-    install_supabase_cli
-    deployment_options
-  else
-    printf "⏭️  Skipping Supabase CLI installation.\n\n"
-    main_menu
+    printf "⏭️  Skipping Node.js and npm installation.\n\n"
+    exit 1
   fi
 fi
 
